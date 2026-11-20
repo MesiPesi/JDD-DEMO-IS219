@@ -1,0 +1,257 @@
+
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>JDD Kunnskapsbase</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            color: #182536;
+        }
+
+        header {
+            background: #172532;
+            color: white;
+            padding: 22px 5%;
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        main {
+            max-width: 1000px;
+            margin: auto;
+            padding: 30px;
+        }
+
+        input, select, textarea, button {
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font: inherit;
+        }
+
+        input, textarea, select {
+            width: 100%;
+        }
+
+        button {
+            background: #087d77;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .search {
+            display: flex;
+            gap: 10px;
+            margin: 25px 0;
+            flex-wrap: wrap;
+        }
+
+        .search input { flex: 1; }
+        .search select { width: 180px; }
+
+        .card, form {
+            background: white;
+            padding: 22px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            border: 1px solid #ddd;
+        }
+
+        .tag {
+            color: #087d77;
+            font-weight: bold;
+        }
+
+        small { color: #777; }
+
+        form input, form textarea, form select {
+            margin-bottom: 12px;
+        }
+
+        footer {
+            text-align: center;
+            color: #777;
+            padding: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>JDD UTSTYR | Kunnskapsbase</header>
+
+<main>
+
+    <h1>Finn kunnskapen du trenger</h1>
+    <p>Produktkompetanse samlet på ett sted.</p>
+
+    <div class="search">
+        <input id="search" placeholder="Søk etter produkt eller spørsmål...">
+
+        <select id="filter">
+            <option>Alle</option>
+            <option>Bilbelysning</option>
+            <option>Montering</option>
+            <option>Feilsøking</option>
+        </select>
+
+        <button onclick="visSkjema()">
+            + Ny kunnskap
+        </button>
+    </div>
+
+    <!-- Registrering av ny kunnskap -->
+    <form id="skjema" hidden>
+
+        <h2>Legg til kunnskap</h2>
+
+        <input id="tittel" placeholder="Spørsmål" required>
+        <input id="produkt" placeholder="Produktnummer" required>
+
+        <select id="kategori">
+            <option>Bilbelysning</option>
+            <option>Montering</option>
+            <option>Feilsøking</option>
+        </select>
+
+        <textarea id="svar" placeholder="Svar" required></textarea>
+        <input id="kilde" placeholder="Kilde" required>
+
+        <button type="submit">Lagre kunnskap</button>
+
+    </form>
+
+    <p id="antall"></p>
+
+    <!-- Her vises artiklene -->
+    <div id="resultater"></div>
+
+</main>
+
+<footer>Studentprototype – fiktive eksempeldata</footer>
+
+<script>
+
+    // Hjelpefunksjon
+    const $ = id => document.getElementById(id);
+
+    // Eksempeldata
+    let kunnskap = [
+        {
+            tittel: "Hvilket tilbehør trenger jeg til X200?",
+            produkt: "LED X200",
+            kategori: "Bilbelysning",
+            svar: "Kontroller bilmodell, årsmodell og behov for kabelsett.",
+            kilde: "Tidligere kundesvar (eksempel)"
+        },
+        {
+            tittel: "Hvordan monteres festebraketten?",
+            produkt: "M100",
+            kategori: "Montering",
+            svar: "Kontroller festepunktene mot monteringsveiledningen.",
+            kilde: "Monteringsveiledning (eksempel)"
+        },
+        {
+            tittel: "Hvorfor starter ikke LED-lyset?",
+            produkt: "LED X200",
+            kategori: "Feilsøking",
+            svar: "Kontroller produktets dokumentasjon og kontakt fagperson ved behov.",
+            kilde: "Tidligere kundesvar (eksempel)"
+        }
+    ];
+
+    // Hent tidligere lagret kunnskap
+    try {
+        kunnskap = JSON.parse(localStorage.getItem("jdd")) || kunnskap;
+    } catch {}
+
+    // Vis og filtrer artikler
+    function visKunnskap() {
+
+        const søk = $("search").value.toLowerCase();
+        const filter = $("filter").value;
+
+        const treff = kunnskap.filter(k =>
+            Object.values(k).join(" ").toLowerCase().includes(søk)
+            && (filter === "Alle" || k.kategori === filter)
+        );
+
+        $("antall").textContent = treff.length + " treff";
+        $("resultater").replaceChildren();
+
+        treff.forEach(k => {
+
+            const kort = document.createElement("article");
+            kort.className = "card";
+
+            const felter = [
+                ["span", k.kategori, "tag"],
+                ["h3", k.tittel],
+                ["small", k.produkt],
+                ["p", k.svar],
+                ["small", "Kilde: " + k.kilde]
+            ];
+
+            felter.forEach(([tag, tekst, klasse]) => {
+                const element = document.createElement(tag);
+                element.textContent = tekst;
+                if (klasse) element.className = klasse;
+                kort.append(element);
+            });
+
+            $("resultater").append(kort);
+        });
+    }
+
+    // Vis eller skjul skjema
+    function visSkjema() {
+        $("skjema").hidden = !$("skjema").hidden;
+    }
+
+    // Lagre ny kunnskap
+    $("skjema").onsubmit = function(e) {
+
+        e.preventDefault();
+
+        kunnskap.unshift({
+            tittel: $("tittel").value,
+            produkt: $("produkt").value,
+            kategori: $("kategori").value,
+            svar: $("svar").value,
+            kilde: $("kilde").value
+        });
+
+        try {
+            localStorage.setItem("jdd", JSON.stringify(kunnskap));
+        } catch {
+            alert("Artikkelen er lagt til, men kunne ikke lagres permanent.");
+        }
+
+        this.reset();
+        this.hidden = true;
+
+        $("search").value = "";
+        $("filter").value = "Alle";
+
+        visKunnskap();
+    };
+
+    // Oppdater ved søk og filtrering
+    $("search").oninput = visKunnskap;
+    $("filter").onchange = visKunnskap;
+
+    visKunnskap();
+
+</script>
+
+</body>
+</html>
