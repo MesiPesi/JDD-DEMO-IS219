@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>JDD Kunnskapsbase</title>
 
+    
     <style>
         * { box-sizing: border-box; }
 
@@ -169,7 +170,7 @@
         }
     ];
 
-    // Hent tidligere lagret kunnskap
+    // Hent tidligere lagret kunnskap for at det skal finne når man laster siden på nytt
     try {
         kunnskap = JSON.parse(localStorage.getItem("jdd")) || kunnskap;
     } catch {}
